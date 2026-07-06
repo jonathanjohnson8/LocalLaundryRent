@@ -46,6 +46,7 @@ export default function LeadForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [submittedName, setSubmittedName] = useState("");
 
   function update(field: keyof FormState) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +74,7 @@ export default function LeadForm() {
         return;
       }
 
+      setSubmittedName(form.firstName);
       setStatus("success");
       setForm(initialState);
     } catch {
@@ -114,7 +116,7 @@ export default function LeadForm() {
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 10 }}>You&apos;re on the list.</div>
         <div style={{ fontSize: 15.5, color: "#5B6274", lineHeight: 1.6 }}>
-          Thanks, {form.firstName || "there"}! We&apos;ll reach out shortly to confirm availability at your address.
+          Thanks, {submittedName || "there"}! We&apos;ll reach out shortly to confirm availability at your address.
         </div>
       </div>
     );

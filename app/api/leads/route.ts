@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabaseClient";
+import { getResendClient, FROM_EMAIL, LEAD_NOTIFY_EMAIL } from "@/lib/email";
 
 const REQUIRED_FIELDS = [
   "firstName",
@@ -52,6 +53,28 @@ export async function POST(request: Request) {
     });
 
     if (error) throw error;
+
+    try {
+      const resend = getResendClient();
+      const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
+
+      await Promise.all([
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: LEAD_NOTIFY_EMAIL,
+          subject: `New lead: ${lead.firstName} ${lead.lastName}`,
+          text: `New signup from the website:\n\nName: ${lead.firstName} ${lead.lastName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\nAddress: ${fullAddress}`,
+        }),
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: lead.email,
+          subject: "You're on the list — Local Laundry Rent",
+          text: `Hi ${lead.firstName},\n\nThanks for signing up! We'll reach out shortly to confirm availability at ${fullAddress}.\n\n— Local Laundry Rent`,
+        }),
+      ]);
+    } catch (emailErr) {
+      console.error("Failed to send lead emails:", emailErr);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
